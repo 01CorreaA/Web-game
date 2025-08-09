@@ -1,0 +1,74 @@
+body {
+    background: #000;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Pantalla de inicio */
+#startScreen {
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('imagen/game.jpg'); /* Cambiado para usar la imagen local */
+    background-size: cover; /* Ajusta la imagen al tamaño de la pantalla */
+    background-position: center; /* Centra la imagen */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centra verticalmente */
+    align-items: center; /* Centra horizontalmente */
+    z-index: 2;
+    transition: opacity 0.5s ease-out;
+}
+
+#startScreen h1 {
+    font-size: 60px;
+    color: white;
+    text-shadow: 3px 3px 7px rgba(0, 0, 0, 0.7);
+    margin: 0;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente para mejorar la legibilidad */
+    border-radius: 10px;
+}
+
+/* Botón de inicio */
+#startButton {
+    padding: 15px 30px;
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+
+#startButton:hover {
+    background-color: #388E3C;
+}
+
+canvas {
+    background: #111;
+    border: 2px solid #fff;
+    display: block;
+}
+
+#message {
+    margin-top: 20px;
+    font-size: 24px;
+    color: white;
+    text-shadow: 2px 2px 5px black;
+    text-align: center;
+    display: none; /* Ocultar por defecto */
+}
+
+.hidden {
+    display: none;
+}
+

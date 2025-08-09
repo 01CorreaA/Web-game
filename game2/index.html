@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego para Gatito</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Pantalla de inicio -->
+    <div id="startScreen">
+        <h1>Bienvenido a un mini Juego Gatito</h1>
+        <button id="startButton">Iniciar Juego</button>
+    </div>
+
+    <!-- Contenedor para el juego -->
+    <div id="gameScreen" style="display: none; flex-direction: column; align-items: center;">
+        <canvas id="gameCanvas" width="480" height="320"></canvas>
+        <div id="message" class="hidden"></div>
+    </div>
+
+    <!-- Este es el contenedor del confeti que se mantendrá oculto hasta que se active -->
+    <div id="confetti-container" style="display:none;">
+        <div class="confetti"></div>
+    <script src="script.js"></script>
+
+</body>
+
+</html>
