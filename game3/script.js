@@ -57,7 +57,7 @@ let gameWon = false;
 let messageContainer;
 let victoryMessage;
 
-window.onload = function() {
+window.onload = function () {
     board = document.getElementById("board");
     board.height = boardHeight;
     board.width = boardWidth;
@@ -102,7 +102,7 @@ function loadMap() {
     walls.clear();
     foods.clear();
     ghosts.clear();
-    
+
     pacman = null;
 
     for (let r = 0; r < rowCount; r++) {
@@ -152,7 +152,7 @@ function draw() {
     for (let ghost of ghosts.values()) {
         context.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height);
     }
-    
+
     for (let wall of walls.values()) {
         context.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height);
     }
@@ -218,8 +218,11 @@ function move() {
             lives -= 1;
             if (lives <= 0) {
                 gameOver = true;
-                alert("GAME OVER... Volviendo al juego 2");
-                window.location.href = "../game2/index.html"; // Redirigir al juego 2
+                alert("GAME OVER");
+                setTimeout(function () {
+                    alert("Solo tienes 3 vidas para el juego 3, se reiniciará por completo al pasar esas vidas");
+                    window.location.href = "../game2/index.html";
+                }, 100);
                 return;
             }
             resetPositions();
@@ -284,9 +287,9 @@ function movePacman(e) {
 
 function collision(a, b) {
     return a.x < b.x + b.width &&
-           a.x + a.width > b.x &&
-           a.y < b.y + b.height &&
-           a.y + a.height > b.y;
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y;
 }
 
 function resetPositions() {
@@ -305,11 +308,11 @@ function resetGame() {
     score = 0;
     gameOver = false;
     gameWon = false;
-    
+
     messageContainer.classList.add('hidden');
     const confettiElements = document.querySelectorAll('.confetti');
     confettiElements.forEach(c => c.remove());
-    
+
     update();
 }
 
@@ -333,13 +336,13 @@ function createConfettiEffect() {
         let confetti = document.createElement("div");
         confetti.classList.add("confetti");
         confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        
+
         const startX = Math.random() * window.innerWidth;
         const startY = Math.random() * -window.innerHeight;
 
         confetti.style.left = `${startX}px`;
         confetti.style.top = `${startY}px`;
-        
+
         const animationDuration = Math.random() * 3 + 2;
         confetti.style.animation = `confetti-fall ${animationDuration}s linear forwards`;
 
