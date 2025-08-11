@@ -26,19 +26,19 @@ const tileMap = [
     "X XX XXX X XXX XX X",
     "X                 X",
     "X XX X XXXXX X XX X",
-    "X    X         X   X",
+    "O    X         X  O",
     "XXXX XXXX XXXX XXXX",
-    "OOOX X         X XOOO",
+    "XXXX XXXX XXXX XXXX",
     "XXXX X XXrXX X XXXX",
-    "O       bpo        O",
+    "O       bpo       O",
     "XXXX X XXXXX X XXXX",
-    "OOOX X         X XOOO",
+    "X            X   XX",    
     "XXXX X XXXXX X XXXX",
-    "X          X         X",
+    "X          X      X",
     "X XX XXX X XXX XX X",
-    "X X    P       X   X",
+    "X X    P       X  X",
     "XX X X XXXXX X X XX",
-    "X    X   X   X     X",
+    "X    X   X   X    X",
     "X XXXXXX X XXXXXX X",
     "X                 X",
     "XXXXXXXXXXXXXXXXXXX"
@@ -149,6 +149,11 @@ function update() {
 function draw() {
     context.clearRect(0, 0, board.width, board.height);
     context.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
+    if (pacman.x < 0) {
+    context.drawImage(pacman.image, pacman.x + boardWidth, pacman.y, pacman.width, pacman.height);
+} else if (pacman.x + pacman.width > boardWidth) {
+    context.drawImage(pacman.image, pacman.x - boardWidth, pacman.y, pacman.width, pacman.height);
+}
     for (let ghost of ghosts.values()) {
         context.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height);
     }
@@ -173,7 +178,8 @@ function draw() {
 
 function move() {
     // Lógica para el siguiente movimiento de Pac-Man
-    if (pacman.nextDirection !== null) {
+    const onTile = (pacman.x % tileSize === 0 && pacman.y % tileSize === 0);
+    if (pacman.nextDirection && onTile)  {
         let tempVx = 0;
         let tempVy = 0;
         if (pacman.nextDirection === 'U') {
@@ -181,7 +187,7 @@ function move() {
         } else if (pacman.nextDirection === 'D') {
             tempVy = tileSize / 4;
         } else if (pacman.nextDirection === 'L') {
-            tempVx = -tileSize / 4;
+            tempVx = -tileSize / 4; 
         } else if (pacman.nextDirection === 'R') {
             tempVx = tileSize / 4;
         }
@@ -197,6 +203,11 @@ function move() {
         }
 
         if (!collisionDetected) {
+            if (pacman.nextDirection === 'U') pacman.image = pacmanUpImage;
+            else if (pacman.nextDirection === 'D') pacman.image = pacmanDownImage;
+            else if (pacman.nextDirection === 'L') pacman.image = pacmanLeftImage;
+            else if (pacman.nextDirection === 'R') pacman.image = pacmanRightImage;
+            
             pacman.updateDirection(pacman.nextDirection);
             pacman.nextDirection = null;
         }
@@ -204,6 +215,9 @@ function move() {
 
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
+
+    if (pacman.x < -pacman.width) pacman.x = boardWidth;
+    if (pacman.x > boardWidth) pacman.x = -pacman.width;
 
     for (let wall of walls.values()) {
         if (collision(pacman, wall)) {
@@ -271,16 +285,12 @@ function movePacman(e) {
     }
 
     if (e.code == "ArrowUp" || e.code == "KeyW") {
-        pacman.image = pacmanUpImage; // Cambiar imagen primero
         pacman.nextDirection = 'U';
     } else if (e.code == "ArrowDown" || e.code == "KeyS") {
-        pacman.image = pacmanDownImage; // Cambiar imagen primero
         pacman.nextDirection = 'D';
     } else if (e.code == "ArrowLeft" || e.code == "KeyA") {
-        pacman.image = pacmanLeftImage; // Cambiar imagen primero
         pacman.nextDirection = 'L';
     } else if (e.code == "ArrowRight" || e.code == "KeyD") {
-        pacman.image = pacmanRightImage; // Cambiar imagen primero
         pacman.nextDirection = 'R';
     }
 }
