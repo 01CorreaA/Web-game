@@ -17,8 +17,9 @@ let pacmanDownImage;
 let pacmanLeftImage;
 let pacmanRightImage;
 let wallImage;
+let scaredGhostImage;
 
-// X = wall, O = skip, P = pac man, ' ' = food
+// X = wall, O = skip, P = pac man, 'C' = power
 // Ghosts: b = blue, o = orange, p = pink, r = red
 const tileMap = [
     "XXXXXXXXXXXXXXXXXXX",
@@ -26,10 +27,10 @@ const tileMap = [
     "X XX XXX X XXX XX X",
     "X                 X",
     "X XX X XXXXX X XX X",
-    "O    X         X  O",
+    "O    X         XC O",
     "XXXX XXXX XXXX XXXX",
     "XXXX XXXX XXXX XXXX",
-    "XXXX X XXrXX X XXXX",
+    "XXXX XCXXrXX X XXXX",
     "O       bpo       O",
     "XXXX X XXXXX X XXXX",
     "X            X   XX",    
@@ -38,7 +39,7 @@ const tileMap = [
     "X XX XXX X XXX XX X",
     "X X    P       X  X",
     "XX X X XXXXX X X XX",
-    "X    X   X   X    X",
+    "X    X   X   X  C X",
     "X XXXXXX X XXXXXX X",
     "X                 X",
     "XXXXXXXXXXXXXXXXXXX"
@@ -77,7 +78,6 @@ window.onload = function () {
 };
 
 function loadImages() {
-    // Rutas de imágenes corregidas
     wallImage = new Image();
     wallImage.src = "./Image/wall.png";
     blueGhostImage = new Image();
@@ -96,6 +96,10 @@ function loadImages() {
     pacmanLeftImage.src = "./Image/pacmanLeft.png";
     pacmanRightImage = new Image();
     pacmanRightImage.src = "./Image/pacmanRight.png";
+    scaredGhostImage = new Image();
+    scaredGhostImage.src = "./Image/scaredGhost.png";
+
+
 }
 
 function loadMap() {
@@ -133,6 +137,12 @@ function loadMap() {
                 const food = new Block(null, x + 14, y + 14, 4, 4);
                 foods.add(food);
             }
+            else if (tileMapChar == 'C') {
+            const powerPellet = new Block(null, x + 8, y + 8, 16, 16);
+            powerPellet.isPowerPellet = true;
+            foods.add(powerPellet);
+}
+
         }
     }
 }
@@ -162,9 +172,22 @@ function draw() {
         context.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height);
     }
 
-    context.fillStyle = "white";
     for (let food of foods.values()) {
+        if (food.isPowerPellet) {
+        const gradient = context.createRadialGradient(
+            food.x + food.width / 2, food.y + food.height / 2, 2,
+            food.x + food.width / 2, food.y + food.height / 2, 8
+        );
+        gradient.addColorStop(0, 'white');
+
+        context.fillStyle = gradient;
+        context.beginPath();
+        context.arc(food.x + food.width / 2, food.y + food.height / 2, 8, 0, Math.PI * 2);
+        context.fill();
+    } else {
+        context.fillStyle = "white";
         context.fillRect(food.x, food.y, food.width, food.height);
+    }
     }
 
     context.fillStyle = "white";
@@ -227,8 +250,13 @@ function move() {
         }
     }
 
-    for (let ghost of ghosts.values()) {
+    for (let ghost of Array.from(ghosts)) {
         if (collision(ghost, pacman)) {
+            if (scaredMode) {
+            ghosts.delete(ghost); 
+            score += 200;
+            continue;
+        } else {
             lives -= 1;
             if (lives <= 0) {
                 gameOver = true;
@@ -240,32 +268,41 @@ function move() {
                 return;
             }
             resetPositions();
+            
         }
-
-        if (ghost.y == tileSize * 9 && ghost.direction != 'U' && ghost.direction != 'D') {
-            ghost.updateDirection('U');
-        }
+}
 
         ghost.x += ghost.velocityX;
         ghost.y += ghost.velocityY;
-        for (let wall of walls.values()) {
-            if (collision(ghost, wall) || ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
-                ghost.x -= ghost.velocityX;
-                ghost.y -= ghost.velocityY;
-                const newDirection = directions[Math.floor(Math.random() * 4)];
-                ghost.updateDirection(newDirection);
+        let collided = false;
+        for (let wall of walls.values()) {   
+            if (collision(ghost, wall)) {  
+                collided = true;
+                break;
             }
-        }
+        }   
+        if (collided) {
+        ghost.x -= ghost.velocityX;
+        ghost.y -= ghost.velocityY;
+
+        const newDirection = directions[Math.floor(Math.random() * 4)];
+        ghost.updateDirection(newDirection);
     }
+}
 
     let foodEaten = null;
     for (let food of foods.values()) {
         if (collision(pacman, food)) {
             foodEaten = food;
+            if (food.isPowerPellet) {
+            activateScaredMode();
+            score += 50;
+        } else {
             score += 10;
-            break;
         }
+        break;
     }
+}
     foods.delete(foodEaten);
 
     if (foods.size == 0) {
@@ -274,6 +311,24 @@ function move() {
         createConfettiEffect();
         gameOver = true;
     }
+}
+
+let scaredMode = false;
+let scaredTimer;
+
+function activateScaredMode() {
+    scaredMode = true;
+    for (let ghost of ghosts.values()) {
+        ghost.image = scaredGhostImage;
+    }
+
+    clearTimeout(scaredTimer);
+    scaredTimer = setTimeout(() => {
+        scaredMode = false;
+        for (let ghost of ghosts.values()) {
+            ghost.resetImage(); // Restablece su imagen original
+        }
+    }, 6000); // 6 segundos de miedo
 }
 
 function movePacman(e) {
@@ -367,6 +422,7 @@ function createConfettiEffect() {
 class Block {
     constructor(image, x, y, width, height) {
         this.image = image;
+        this.originalImage = image; 
         this.x = x;
         this.y = y;
         this.width = width;
@@ -376,7 +432,7 @@ class Block {
         this.startY = y;
 
         this.direction = 'R';
-        this.nextDirection = null; // Nuevo
+        this.nextDirection = null; 
         this.velocityX = 0;
         this.velocityY = 0;
     }
@@ -397,12 +453,15 @@ class Block {
             this.velocityY = 0;
         }
     }
+    resetImage() {
+    this.image = this.originalImage;
+    }
 
     reset() {
         this.x = this.startX;
         this.y = this.startY;
         this.direction = 'R';
-        this.nextDirection = null; // Nuevo
+        this.nextDirection = null; 
         this.velocityX = 0;
         this.velocityY = 0;
     }
