@@ -1,5 +1,4 @@
 
-//board
 let board;
 const rowCount = 21;
 const columnCount = 19;
@@ -136,8 +135,14 @@ function loadMap() {
             } else if (tileMapChar == ' ') {
                 const food = new Block(null, x + 14, y + 14, 4, 4);
                 foods.add(food);
-            }
-            else if (tileMapChar == 'C') {
+            } else if (tileMapChar == 'O') {
+                // Teletransporte (pared para fantasmas, especial para Pac-Man)
+                const teleportTile = new Block(null, x, y, tileSize, tileSize);
+                teleportTile.isTeleport = true;
+                teleportTile.onlyForGhosts = true;  
+                teleportTile.image = null; 
+                walls.add(teleportTile); 
+            } else if (tileMapChar == 'C') {
             const powerPellet = new Block(null, x + 8, y + 8, 16, 16);
             powerPellet.isPowerPellet = true;
             foods.add(powerPellet);
@@ -169,7 +174,9 @@ function draw() {
     }
 
     for (let wall of walls.values()) {
+        if (wall.image) {
         context.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height);
+        }
     }
 
     for (let food of foods.values()) {
@@ -243,7 +250,7 @@ function move() {
     if (pacman.x > boardWidth) pacman.x = -pacman.width;
 
     for (let wall of walls.values()) {
-        if (collision(pacman, wall)) {
+        if (!wall.onlyForGhosts && collision(pacman, wall)) {   
             pacman.x -= pacman.velocityX;
             pacman.y -= pacman.velocityY;
             break;
@@ -259,7 +266,7 @@ function move() {
         } else {
             lives -= 1;
             if (lives <= 0) {
-                gameOver = true;
+                gameOver = true;    
                 alert("GAME OVER");
                 setTimeout(function () {
                     alert("Solo tienes 3 vidas para el juego 3, se reiniciará por completo al pasar esas vidas");
@@ -435,6 +442,7 @@ class Block {
         this.nextDirection = null; 
         this.velocityX = 0;
         this.velocityY = 0;
+        
     }
 
     updateDirection(direction) {
