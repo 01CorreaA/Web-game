@@ -467,9 +467,34 @@ function resetGame() {
 function showVictoryMessage() {
     messageContainer.classList.remove("hidden");
     victoryMessage.innerHTML = `
-        <h2>¡Felicidades! Mor haz ganado el juego  🥳</h2>
-        <p>Hola, gatito. Como estas? aca un nuevo juego pa ti jejeje <br>
-        mmm otra vez hice un pequeño juego para usted, espero le guste jsjs y <br>
+        <h2>¡Felicidades! Mor has ganado el juego </h2>
+            Hola, gatito, ¿cómo estás? Jejeje <br>
+            Mmm... otra vez hice un pequeño juego para ti. Espero que te haya gustado jsjs.<br>
+            Y pues, solo quería desearte mucha suerte. No sé si el viernes nos veremos, <br>
+            pero yo espero que sí. También quiero ver cómo juegas 😆 , WA<br><br>
+            
+            Bueno, suerte de verdad, ya sabes por tu viaje y todo eso. En fin...<br>
+            <strong>¡FELIZ 1 AÑO Y 3 MESES, GATITOOOO! WAAAAAAAAAAAA</strong> <br><br>
+
+            Todo esto me emociona, y estar contigo es simplemente increíble jejeje.<br>
+            Me alegra muchísimo que seas mi pareja. Siento que hace tiempo no te hacía <br>
+            un jueguito como este, pero sabes que siempre me tenés a tu lado. Quizá no físicamente, <br>
+            pero siempre puedes escribirme o llamarme, y estaré ahí para escucharte y hablar contigo.<br><br>
+            (Bueno, al menos por ahora, porque después me vas a ver hasta en tus sueños... <br>
+            aunque creo que ya lo hago, tú sabes jajajaja )<br><br>
+
+            En fin... ¡aaaaa es un waaa!<br>
+            Cada día contigo es una emoción, una alegría, un wa constante.<br>
+            Sos único, morcito. Único para mí, porque te convertiste en mi todo.<br>
+            Te elegí, y te seguiría eligiendo siempre. Verte es hermoso. <br>
+            Me escuchás, me hacés reír con tus ocurrencias, y contigo soy feliz.<br><br>
+
+            No solo por momentos, no solo por las risas: incluso después de eso, <br>
+            seguís alegrando mis días, mi vida. Como decís vos: hay que disfrutar el momento, <br>
+            porque el futuro es incierto. Por eso a tu lado quiero estar, incluso en el cielo o en el infierno,<br>
+            porque ni la vida ni la muerte nos podran separar, ya que en vos encontré a mi pareja, <br>
+            mi compañero, mi confidente... mi todo. 
+            B   ueno en fin de AMOOOO mucho    
         </p>
     `;
 }

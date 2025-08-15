@@ -31,9 +31,13 @@ body {
     transform: translate(-50%, -50%);
     background-color: rgba(0, 0, 0, 0.8);
     padding: 2rem;
-    border-radius: 10px;
+    border-radius: 15px;
     text-align: center;
     z-index: 100;
+    width: 100%;     
+        max-width: 90%;    
+    max-height: 90vh; 
+    overflow-y: auto;
 }
 
 .hidden {
