@@ -30,7 +30,7 @@ const tileMap = [
     "XXXX XXXX XXXX XXXX",
     "XXXX XXXX XXXX XXXX",
     "XXXX XCXXrXX X XXXX",
-    "O       bpo       O",
+    "O      bp o       O",
     "XXXX X XXXXX X XXXX",
     "X            X   XX",    
     "XXXX X XXXXX X XXXX",
@@ -45,9 +45,11 @@ const tileMap = [
 ];
 
 const walls = new Set();
+const teleportTiles = new Set(); 
 const foods = new Set();
 const ghosts = new Set();
 let pacman;
+let ghostArray = [];
 
 const directions = ['U', 'D', 'L', 'R'];
 let score = 0;
@@ -68,7 +70,7 @@ window.onload = function () {
 
     loadImages();
     loadMap();
-    for (let ghost of ghosts.values()) {
+    for (let ghost of ghostArray) {
         const newDirection = directions[Math.floor(Math.random() * 4)];
         ghost.updateDirection(newDirection);
     }
@@ -105,6 +107,7 @@ function loadMap() {
     walls.clear();
     foods.clear();
     ghosts.clear();
+    ghostArray = [];            
 
     pacman = null;
 
@@ -116,20 +119,15 @@ function loadMap() {
             const y = r * tileSize;
 
             if (tileMapChar == 'X') {
-                const wall = new Block(wallImage, x, y, tileSize, tileSize);
-                walls.add(wall);
-            } else if (tileMapChar == 'b') {
-                const ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
+                walls.add(new Block(wallImage, x, y, tileSize, tileSize));
+            } else if (['b','o','p','r'].includes(tileMapChar)) {
+                let img = tileMapChar === 'b' ? blueGhostImage :        
+                        tileMapChar === 'o' ? orangeGhostImage :
+                        tileMapChar === 'p' ? pinkGhostImage : redGhostImage;
+                const ghost = new Block(img, x, y,tileSize, tileSize);
+                ghost.active = false;
                 ghosts.add(ghost);
-            } else if (tileMapChar == 'o') {
-                const ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if (tileMapChar == 'p') {
-                const ghost = new Block(pinkGhostImage, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
-            } else if (tileMapChar == 'r') {
-                const ghost = new Block(redGhostImage, x, y, tileSize, tileSize);
-                ghosts.add(ghost);
+                ghostArray.push(ghost);
             } else if (tileMapChar == 'P') {
                 pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
             } else if (tileMapChar == ' ') {
@@ -139,18 +137,72 @@ function loadMap() {
                 // Teletransporte (pared para fantasmas, especial para Pac-Man)
                 const teleportTile = new Block(null, x, y, tileSize, tileSize);
                 teleportTile.isTeleport = true;
-                teleportTile.onlyForGhosts = true;  
-                teleportTile.image = null; 
-                walls.add(teleportTile); 
+                teleportTiles.add(teleportTile);
             } else if (tileMapChar == 'C') {
             const powerPellet = new Block(null, x + 8, y + 8, 16, 16);
             powerPellet.isPowerPellet = true;
             foods.add(powerPellet);
-}
-
+            }
         }
     }
+    if (ghostArray[0]) ghostArray[0].active = true;
+    if (ghostArray[1]) ghostArray[1].active = true;
 }
+
+setInterval(() => {
+    for (let ghost of ghostArray) {
+        if (!ghost.active) continue;
+
+        const dx = pacman.x - ghost.x;
+        const dy = pacman.y - ghost.y;
+        const targetDx = scaredMode ? -dx : dx;
+        const targetDy = scaredMode ? -dy : dy;
+        const horizontalDir = targetDx > 0 ? 'R' : 'L';
+        const verticalDir = targetDy > 0 ? 'D' : 'U';
+
+        function canMove(direction) {
+            let tempX = ghost.x;
+            let tempY = ghost.y;
+            const step = tileSize / 4;
+            if (direction === 'U') tempY -= step;
+            else if (direction === 'D') tempY += step;
+            else if (direction === 'L') tempX -= step;
+            else if (direction === 'R') tempX += step;
+
+            for (let wall of walls) {
+                if (collision({x: tempX, y: tempY, width: ghost.width, height: ghost.height}, wall)) {
+                    return false;
+                }
+            }
+            for (let teleport of teleportTiles) {
+            if (collision({x: tempX, y: tempY, width: ghost.width, height: ghost.height}, teleport)) {
+            return false; 
+        }
+    }
+
+            return true;
+        }
+
+        let newDirection = Math.abs(targetDx) > Math.abs(targetDy) ? horizontalDir : verticalDir;
+        if (!canMove(newDirection)) {
+            const altDirection = newDirection === horizontalDir ? verticalDir : horizontalDir;
+            if (canMove(altDirection)) {
+                newDirection = altDirection;
+            } else {
+                if (canMove(ghost.direction)) {
+                    newDirection = ghost.direction;
+                } else {
+                    const validDirections = directions.filter(dir => canMove(dir));
+                    if (validDirections.length > 0) {
+                        newDirection = validDirections[Math.floor(Math.random() * validDirections.length)];
+                    }
+                }
+            }
+        }
+        ghost.updateDirection(newDirection);
+    }
+}, 500); 
+
 
 function update() {
     if (gameOver || gameWon) {
@@ -207,9 +259,15 @@ function draw() {
 }
 
 function move() {
-    // Lógica para el siguiente movimiento de Pac-Man
+    // Lógica para el siguiente movimiento de Pac-Man   
     const onTile = (pacman.x % tileSize === 0 && pacman.y % tileSize === 0);
-    if (pacman.nextDirection && onTile)  {
+    const isOnTeleport = [...teleportTiles].some(tp =>
+    tp.x === pacman.x && tp.y === pacman.y
+);
+    if (pacman.nextDirection && onTile) {
+    if (isOnTeleport && (pacman.nextDirection === 'U' || pacman.nextDirection === 'D')) {
+        pacman.nextDirection = null;
+    } else {
         let tempVx = 0;
         let tempVy = 0;
         if (pacman.nextDirection === 'U') {
@@ -242,6 +300,7 @@ function move() {
             pacman.nextDirection = null;
         }
     }
+}
 
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
@@ -258,11 +317,45 @@ function move() {
     }
 
     for (let ghost of Array.from(ghosts)) {
+        if (!ghost.active) continue;
+        const nextX = ghost.x + ghost.velocityX;
+        const nextY = ghost.y + ghost.velocityY;
+        let willCollide = false;
+        for (let wall of walls.values()) {   
+            if (collision({ x: nextX, y: nextY, width: ghost.width, height: ghost.height }, wall)) {
+                willCollide = true;
+                break;
+            }
+        } 
+        if (!willCollide) {
+        for (let teleport of teleportTiles) {
+            if (collision({ x: nextX, y: nextY, width: ghost.width, height: ghost.height }, teleport)) {
+                willCollide = true;
+                break;
+            }
+        }
+    }  
+        if (!willCollide) {
+        ghost.x = nextX;
+        ghost.y = nextY;
+        } else {
+        const newDirection = directions[Math.floor(Math.random() * 4)];
+        ghost.updateDirection(newDirection);
+    }
         if (collision(ghost, pacman)) {
             if (scaredMode) {
+            ghost.active = false;
             ghosts.delete(ghost); 
+            ghostArray = ghostArray.filter(g => g !== ghost);
             score += 200;
-            continue;
+            for (let g of ghostArray) {
+            if (!g.active) {
+                g.active = true;
+                const newDirection = directions[Math.floor(Math.random() * 4)];
+                g.updateDirection(newDirection);
+                break; 
+            }
+        }
         } else {
             lives -= 1;
             if (lives <= 0) {
@@ -275,25 +368,8 @@ function move() {
                 return;
             }
             resetPositions();
-            
+            break; 
         }
-}
-
-        ghost.x += ghost.velocityX;
-        ghost.y += ghost.velocityY;
-        let collided = false;
-        for (let wall of walls.values()) {   
-            if (collision(ghost, wall)) {  
-                collided = true;
-                break;
-            }
-        }   
-        if (collided) {
-        ghost.x -= ghost.velocityX;
-        ghost.y -= ghost.velocityY;
-
-        const newDirection = directions[Math.floor(Math.random() * 4)];
-        ghost.updateDirection(newDirection);
     }
 }
 
